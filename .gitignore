@@ -1,0 +1,15 @@
+# ลบโฟลเดอร์ build / cache ที่ไม่จำเป็น
+node_modules/
+.next/
+
+# ถ้าอยาก ignore ทุกโฟลเดอร์ node_modules และ .next ในทุก subfolder
+**/node_modules/
+**/.next/
+
+# ล็อกไฟล์ของแพ็กเกจ
+package-lock.json
+yarn.lock
+bun.lock
+
+# VSCode settings
+.vscode/
