@@ -6,7 +6,6 @@ import QrScanner from "qr-scanner";
 export default function page() {
   const [data_User_Car, setData_User_Car] = useState<any[]>([]);
   const [time, setTime] = useState<any>("");
-  const [car, setCar] = useState<any>("");
   const [number_Mile, setNumber_Mile] = useState<any>("");
 
   const videoEl = useRef(null);
@@ -14,21 +13,28 @@ export default function page() {
   const [scanning, setScanning] = useState<any>(false);
 
   useEffect(() => {
-    let scanner;
-    if (scanning) {
-      scanner = new QrScanner(videoEl.current, (result) => setQrData(result), {
-        onBeep: () => console.log("Beep!"),
-        /* more options */
-      });
-      scanner.start();
+  let scanner: QrScanner | undefined;
+
+  if (scanning && videoEl.current) {
+    scanner = new QrScanner(videoEl.current, (result: string) => setQrData(result));
+    scanner.start().catch(err => console.error("Scanner start failed:", err));
+  }
+
+  return () => {
+    if (scanner) {
+      scanner.stop();
+      scanner.destroy();
     }
-    return () => {
-      if (scanner) {
-        scanner.stop();
-        scanner.destroy();
-      }
-    };
-  }, [scanning]);
+  };
+}, [scanning]);
+
+  navigator.mediaDevices.getUserMedia({ video: true })
+  .then(stream => {
+    console.log("Camera OK", stream);
+  })
+  .catch(err => {
+    console.error("Camera access error:", err);
+  });
 
   useEffect(() => {
     const updateTime = () => {
@@ -72,7 +78,7 @@ export default function page() {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        car: car,
+        car: videoEl,
         number_Mile: number_Mile,
         time: time,
       }),
@@ -94,7 +100,6 @@ export default function page() {
                 </div>
                 <div className="status-info">
                   <span>วัน/เดือน</span>
-                  {console.log(item.Out_Time)}
                   <span className="value">
                     {item.Out_Time
                       ? `${new Date(item.Out_Time).toLocaleDateString(
