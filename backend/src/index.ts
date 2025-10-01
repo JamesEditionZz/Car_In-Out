@@ -1,4 +1,4 @@
-import { Elysia } from "elysia";
+import { Elysia, status } from "elysia";
 import sql from "mssql";
 import { cors } from "@elysiajs/cors";
 
@@ -17,90 +17,64 @@ const config: sql.config = {
 
 const pool = await sql.connect(config);
 
-app.get("/Detail_Car", async () => {
-  try {
-    const res = await pool.request().query(`SELECT * FROM Detail_Car`);
-
-    return res.recordset;
-  } catch (error) {
-    console.error(error);
-  }
+app.get("/API/Detail_Car", async () => {
+  const result = await pool.request().query("SELECT * FROM Detail_Car");
+  return result.recordset;
 });
 
-app.post("/Record_Car", async ({ body }) => {
-  const now = new Date(
-    new Date().toLocaleString("en-US", { timeZone: "Asia/Bangkok" })
-  );
-
-  const yyyy = now.getFullYear();
-  const mm = Number(now.getMonth());
-  const dd = Number(now.getDate());
-  const hh = Number(now.getHours());
-  const min = Number(now.getMinutes());
-  const ss = Number(now.getSeconds());
-
-  const timezone = new Date(Date.UTC(yyyy, mm, dd, hh, min, ss));
-
+app.post("/API/Record_Car", async ({ body }) => {
   try {
-    const CheckCar = await pool
-      .request()
-      .input("Car_Registration", sql.VarChar, `%${body.car}%`)
-      .query(
-        `SELECT * FROM Detail_Car WHERE Car_Registration LIKE @Car_Registration`
-      );
+    const [d, m, y] = body.date.split("/");
+    const [hh, mm, ss] = body.time.split(":");
 
-    if (
-      CheckCar.recordset.length > 0 &&
-      CheckCar.recordset[0]?.Number_Mile_Out <= Number(body.number_Mile)
-    ) {
-      const res = await pool
-        .request()
-        .input("Car_Registration", sql.VarChar, body.car)
-        .query(`DELETE Detail_Car WHERE Car_Registration = @Car_Registration`);
+    const year = Number(y) - 543;
+    const month = Number(m).toString().padStart(2, "0");
+    const day = Number(d).toString().padStart(2, "0");
 
-      await pool
+    const hour = Number(hh).toString().padStart(2, "0");
+    const minute = Number(mm).toString().padStart(2, "0");
+    const second = Number(ss).toString().padStart(2, "0");
+
+    const thaiTimeWithOffset = `${year}-${month}-${day} ${hour}:${minute}:${second} +07:00`;
+
+    if (body.numberIn != "") {
+      const result = await pool
         .request()
-        .input("ID_Car", sql.Int, CheckCar.recordset[0].ID)
-        .input("Car_Registration", sql.VarChar, body.car)
-        .input("Number_Mile_In", sql.Float, body.number_Mile)
-        .input("In_Time", sql.DateTime, timezone)
+        .input("Car_Registration", sql.VarChar, body.carRegister)
+        .input("In_Time", sql.DateTimeOffset, thaiTimeWithOffset)
+        .input("Number_Mile_In", sql.Float, body.numberIn)
         .query(
-          `UPDATE [Log] SET Number_Mile_In = @Number_Mile_In, In_Time = @In_Time WHERE Car_Registration = @Car_Registration AND ID_Car = @ID_Car`
+          "UPDATE Detail_Car SET In_Time = @In_Time, Number_Mile_In = @Number_Mile_In WHERE Car_Registration = @Car_Registration"
         );
 
-      return res;
-    } else if (
-      CheckCar.recordset[0]?.Number_Mile_Out > Number(body.number_Mile)
-    ) {
-      return { status: 500, message: "Failed" };
-    } else {
-      const res = await pool
+      return result.recordset;
+    } else if (body.numberOut != "") {
+      
+      const name = body.namePerson.replaceAll(/,\s*/g, "|");
+
+      const CheckCar_Regis = await pool
         .request()
-        .input("Car_Registration", sql.VarChar, body.car)
-        .input("Number_Mile_Out", sql.Float, body.number_Mile)
-        .input("Out_Time", sql.DateTime, timezone)
+        .input("Car_Registration", sql.VarChar, body.carRegister)
         .query(
-          `INSERT INTO Detail_Car (Car_Registration, Out_Time, Number_Mile_Out) VALUES (@Car_Registration, @Out_Time, @Number_Mile_Out) `
+          "SELECT * FROM Detail_Car WHERE Car_Registration = @Car_Registration AND Number_Mile_In IS NULL"
         );
 
-      const ID_Car = await pool
-        .request()
-        .input("Car_Registration", sql.VarChar, `%${body.car}%`)
-        .query(
-          `SELECT * FROM Detail_Car WHERE Car_Registration LIKE @Car_Registration`
-        );
+      if (CheckCar_Regis.recordset.length === 0) {
+        const result = await pool
+          .request()
+          .input("Project", sql.VarChar, body.Project)
+          .input("Car_Registration", sql.VarChar, body.carRegister)
+          .input("Out_Time", sql.DateTimeOffset, thaiTimeWithOffset)
+          .input("Number_Mile_Out", sql.Float, body.numberOut)
+          .input("Name", sql.VarChar, name)
+          .query(
+            "INSERT INTO Detail_Car (Project, Car_Registration, Out_Time, Number_Mile_Out, Name)  VALUES (@Project, @Car_Registration, @Out_Time, @Number_Mile_Out, @Name)"
+          );
 
-      await pool
-        .request()
-        .input("ID_Car", sql.Int, ID_Car.recordset[0].ID)
-        .input("Car_Registration", sql.VarChar, body.car)
-        .input("Number_Mile_Out", sql.Float, body.number_Mile)
-        .input("Out_Time", sql.DateTime, timezone)
-        .query(
-          `INSERT INTO [Log] (Car_Registration, Out_Time, Number_Mile_Out, ID_Car) VALUES (@Car_Registration, @Out_Time, @Number_Mile_Out, @ID_Car) `
-        );
-
-      return res;
+        return result.recordset;
+      } else {
+        return status(400, { message: "Car already checked in" });
+      }
     }
   } catch (error) {
     console.error(error);
