@@ -1,6 +1,5 @@
 "use client";
 import React, { useEffect, useRef, useState } from "react";
-import "bootstrap/dist/css/bootstrap.min.css";
 
 export default function Page() {
   const [data, setData] = useState<any[]>([]);
@@ -13,7 +12,7 @@ export default function Page() {
   const [time, setTime] = useState<Date>(new Date());
   const [Car_Register, setCar_Register] = useState<string>("");
   const [NumberOut, setNumberOut] = useState<number>(0);
-  const [NumberIn, setNumberIn] = useState<number>(0);
+  const [NumberIn, setNumberIn] = useState<number>("");
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
   const [TrueMileIn, setTrueMileIn] = useState<boolean>(false);
 
@@ -38,7 +37,6 @@ export default function Page() {
     datafecth();
   }, []);
 
-  // ฟังก์ชันเลื่อน focus
   const handleKeyDown = (e: React.KeyboardEvent, index: number) => {
     if (e.key === "Enter") {
       e.preventDefault();
@@ -50,7 +48,6 @@ export default function Page() {
   };
 
   const handleBlur = (index: number) => {
-    // ให้ช่องแรกบังคับ focus ใหม่ ถ้าไม่ได้กำลังจะไป input อื่นใน form
     setTimeout(() => {
       const active = document.activeElement as HTMLElement;
       const isInsideForm = inputRefs.current.includes(
@@ -181,170 +178,182 @@ export default function Page() {
   };
 
   return (
-    <div className="background-CIO">
-      <h2 className="mx-5 text-white">SCAN IN-OUT</h2>
-      <div className="form-input">
-        <div className="row mx-4 mt-4">
-          <div className="col-2 border-right bg-body">
-            <div className="fs-5 text-center p-2 border border-2 border">
-              <div>{time.toLocaleDateString("th-TH")} </div>
-              <div>{time.toLocaleTimeString("th-TH", { hour12: false })}</div>
-            </div>
-            <div className="mt-2">
-              <label>ป้ายทะเบียนรถ</label>
-              <input
-                value={Car_Register}
-                ref={(el) => (inputRefs.current[0] = el)}
-                className="form-control"
-                onChange={(e) => setCar_Register(e.target.value)}
-                onKeyDown={(e) => handleKeyDown(e, 0)}
-                onBlur={() => handleBlur(0)}
-              />
-            </div>
-            <div className="mt-3">
-              <div className="">พนักงาน</div>
-              <input
-                value={Name_Person1}
-                ref={(el) => (inputRefs.current[1] = el)}
-                className="form-control"
-                onChange={(e) => setName_Person1(e.target.value)}
-                onKeyDown={(e) => handleKeyDown(e, 1)}
-              />
-              <input
-                value={Name_Person2}
-                ref={(el) => (inputRefs.current[2] = el)}
-                className="form-control mt-2"
-                onChange={(e) => setName_Person2(e.target.value)}
-                onKeyDown={(e) => handleKeyDown(e, 2)}
-              />
-              <input
-                value={Name_Person3}
-                ref={(el) => (inputRefs.current[3] = el)}
-                className="form-control mt-2"
-                onChange={(e) => setName_Person3(e.target.value)}
-                onKeyDown={(e) => handleKeyDown(e, 3)}
-              />
-              <input
-                value={Name_Person4}
-                ref={(el) => (inputRefs.current[4] = el)}
-                className="form-control mt-2"
-                onChange={(e) => setName_Person4(e.target.value)}
-                onKeyDown={(e) => handleKeyDown(e, 4)}
-              />
-              <input
-                value={Name_Person5}
-                ref={(el) => (inputRefs.current[5] = el)}
-                className="form-control mt-2"
-                onChange={(e) => setName_Person5(e.target.value)}
-                onKeyDown={(e) => handleKeyDown(e, 5)}
-              />
-            </div>
-            <div className="mt-2">
-              <label>โครงการ</label>
-              <input
-                value={project}
-                ref={(el) => (inputRefs.current[6] = el)}
-                className="form-control"
-                onChange={(e) => setProject(e.target.value)}
-                onKeyDown={(e) => handleKeyDown(e, 6)}
-                onBlur={() => handleBlur(0)}
-              />
-            </div>
-            <div>
-              <label className="mt-3">เลขไมค์ออกโรงงาน</label>
-              <input
-                value={NumberOut}
-                ref={(el) => (inputRefs.current[7] = el)}
-                className="form-control"
-                onChange={(e) => setNumberOut(Number(e.target.value))}
-                onKeyDown={(e) => handleKeyDown(e, 7)}
-              />
-            </div>
-            <div>
-              <label className="mt-3">เลขไมค์เข้าโรงงาน</label>
-              <input
-                value={NumberIn}
-                ref={(el) => (inputRefs.current[8] = el)}
-                className="form-control"
-                onChange={(e) => setNumberIn(Number(e.target.value))}
-                onKeyDown={(e) => handleKeyDown(e, 8)}
-                disabled={TrueMileIn ? false : true}
-              />
-            </div>
-            <div>
-              <button
-                className="btn btn-primary p-3 w-100 mt-3"
-                onClick={() => Submit()}
-              >
-                บันทึก
-              </button>
+    <div className="container">
+      <div className="header">SCAN IN-OUT</div>
+
+      <div className="main-content">
+        {/* Left Panel */}
+        <div className="left-panel">
+          <div className="datetime-box">
+            <div className="date">{time.toLocaleDateString("th-TH")}</div>
+            <div className="time">
+              {time.toLocaleTimeString("th-TH", { hour12: false })}
             </div>
           </div>
-          <div className="col-10">
-            <div className="bg-body overflow-auto">
-              <table className="table table-bordered table-hover">
-                <thead>
-                  <tr>
-                    <th className="text-center">โครงการ</th>
-                    <th className="text-center">ป้ายทะเบียน</th>
-                    <th className="text-center">ชื่อพนักงาน</th>
-                    <th className="text-center">ออก</th>
-                    <th className="text-center">เข้า</th>
-                  </tr>
-                </thead>
-                <tbody className="cursor-pointer">
-                  {data.map((item, index) => (
-                    <tr key={index} onClick={() => SelectValue(item.ID)}>
-                      <td className="text-center align-content-center">
-                        {item.Project}
-                      </td>
-                      <td className="text-center align-content-center">
-                        {item.Car_Registration}
-                      </td>
-                      <td>
+
+          <div className="form-group">
+            <label className="form-label">ป้ายทะเบียนรถ</label>
+            <input
+              value={Car_Register}
+              ref={(el) => (inputRefs.current[0] = el)}
+              className="form-input highlighted"
+              onChange={(e) => setCar_Register(e.target.value)}
+              onKeyDown={(e) => handleKeyDown(e, 0)}
+              onBlur={() => handleBlur(0)}
+              disabled={TrueMileIn}
+            />
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">พนักงาน</label>
+            <input
+              value={Name_Person1}
+              ref={(el) => (inputRefs.current[1] = el)}
+              className="form-input"
+              onChange={(e) => setName_Person1(e.target.value)}
+              onKeyDown={(e) => handleKeyDown(e, 1)}
+              disabled={TrueMileIn}
+            />
+            <input
+              value={Name_Person2}
+              ref={(el) => (inputRefs.current[2] = el)}
+              className="form-input"
+              style={{ marginTop: "8px" }}
+              onChange={(e) => setName_Person2(e.target.value)}
+              onKeyDown={(e) => handleKeyDown(e, 2)}
+              disabled={TrueMileIn}
+            />
+            <input
+              value={Name_Person3}
+              ref={(el) => (inputRefs.current[3] = el)}
+              className="form-input"
+              style={{ marginTop: "8px" }}
+              onChange={(e) => setName_Person3(e.target.value)}
+              onKeyDown={(e) => handleKeyDown(e, 3)}
+              disabled={TrueMileIn}
+            />
+            <input
+              value={Name_Person4}
+              ref={(el) => (inputRefs.current[4] = el)}
+              className="form-input"
+              style={{ marginTop: "8px" }}
+              onChange={(e) => setName_Person4(e.target.value)}
+              onKeyDown={(e) => handleKeyDown(e, 4)}
+              disabled={TrueMileIn}
+            />
+            <input
+              value={Name_Person5}
+              ref={(el) => (inputRefs.current[5] = el)}
+              className="form-input"
+              style={{ marginTop: "8px" }}
+              onChange={(e) => setName_Person5(e.target.value)}
+              onKeyDown={(e) => handleKeyDown(e, 5)}
+              disabled={TrueMileIn}
+            />
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">โครงการ</label>
+            <input
+              value={project}
+              ref={(el) => (inputRefs.current[6] = el)}
+              className="form-input"
+              onChange={(e) => setProject(e.target.value)}
+              onKeyDown={(e) => handleKeyDown(e, 6)}
+              onBlur={() => handleBlur(0)}
+              disabled={TrueMileIn}
+            />
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">เลขไมค์ออกโรงงาน</label>
+            <input
+              value={NumberOut}
+              ref={(el) => (inputRefs.current[7] = el)}
+              className="form-input"
+              onChange={(e) => setNumberOut(Number(e.target.value))}
+              onKeyDown={(e) => handleKeyDown(e, 7)}
+              disabled={TrueMileIn}
+            />
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">เลขไมค์เข้าโรงงาน</label>
+            <input
+              value={NumberIn}
+              ref={(el) => (inputRefs.current[8] = el)}
+              className="form-input"
+              onChange={(e) => setNumberIn(Number(e.target.value))}
+              onKeyDown={(e) => handleKeyDown(e, 8)}
+              disabled={!TrueMileIn}
+              style={{ opacity: TrueMileIn ? 1 : 0.5 }}
+            />
+          </div>
+
+          <button className="submit-btn" onClick={() => Submit()}>
+            บันทึก
+          </button>
+        </div>
+
+        {/* Right Panel */}
+        <div className="right-panel">
+          <div className="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>โครงการ</th>
+                  <th>ป้ายทะเบียน</th>
+                  <th>ชื่อพนักงาน</th>
+                  <th>ออก</th>
+                  <th>เข้า</th>
+                </tr>
+              </thead>
+              <tbody>
+                {data.map((item, index) => (
+                  <tr
+                    key={index}
+                    onClick={() => SelectValue(item.ID)}
+                    style={{ cursor: "pointer" }}
+                  >
+                    <td>{item.Project}</td>
+                    <td>{item.Car_Registration}</td>
+                    <td>
+                      <div className="employee-info">
                         {item.Name.split("|").map(
-                          (
-                            name: string,
-                            index: React.Key | null | undefined
-                          ) => (
-                            <span key={index}>
+                          (name: string, idx: number) => (
+                            <span key={idx} className="employee-name">
                               {name.trim()}
-                              <br />
                             </span>
                           )
                         )}
-                      </td>
-                      <td className="text-center align-content-center">
-                        <div>
-                          {item.Out_Time.split("T")[0]}{" "}
-                          {
-                            item.Out_Time.split("T")[1]
-                              .split("Z")[0]
-                              .split(".")[0]
-                          }
-                        </div>
-                        <div>({item.Number_Mile_Out})</div>
-                      </td>
-                      <td className="text-center align-content-center">
-                        <div>
-                          {item.In_Time ? item.In_Time.split("T")[0] : ""}{" "}
-                          {item.In_Time
-                            ? item.In_Time.split("T")[1]
-                                .split("Z")[0]
-                                .split(".")[0]
-                            : ""}
-                        </div>
-                        <div>
-                          {item.Number_Mile_In
-                            ? `(${item.Number_Mile_In})`
-                            : ""}
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                      </div>
+                    </td>
+                    <td>
+                      <div className="time-badge">
+                        {item.Out_Time.split("T")[0]}{" "}
+                        {item.Out_Time.split("T")[1].split("Z")[0].split(".")[0]}
+                      </div>
+                      <div className="id-badge">({item.Number_Mile_Out})</div>
+                    </td>
+                    <td>
+                      {item.In_Time && (
+                        <>
+                          <div className="time-badge">
+                            {item.In_Time.split("T")[0]}{" "}
+                            {item.In_Time.split("T")[1].split("Z")[0].split(".")[0]}
+                          </div>
+                          {item.Number_Mile_In && (
+                            <div className="id-badge">
+                              ({item.Number_Mile_In})
+                            </div>
+                          )}
+                        </>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
       </div>
